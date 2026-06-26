@@ -1,0 +1,14 @@
+{
+ "Name": "Cookie Payback Planner",
+ "ID": "BestDealHelper",
+ "Author": "Jethro Yu",
+ "Description": "Perfect information for the best next cookie.",
+ "ModVersion": 2048.13,
+ "GameVersion": 2.048,
+ "Date": "09/30/2024",
+ "Dependencies": [
+  "CCSE"
+ ],
+ "AllowSteamAchievs": 1,
+ "Workshop": "2689045003"
+}

@@ -1,0 +1,31 @@
+[Cursor] 560ms, 15 Baked, 0 In Bank, 40 ms of CD 1 Cursor with 0 ms
+[2C] 1280.0ms, 33.07 Baked, 0.82 In Bank, 40 ms of CD 2 Cursor with 0 ms
+[3C] 4720.0ms, 120.04 Baked, 67.95 In Bank, 40 ms of CD 3 Cursor with 20.0 ms
+Cursor560 ms, 15 baked, 0 in bank1 Cursor with 0CursorCursor1280.0 ms, 33.07 baked, 0.07333333333333769 in bank2 Cursor with 13.33CursorCursorCursor2080.0 ms, 53.23 baked, 0.23333333333333428 in bank3 Cursor with 13.33CursorCursorCursor2640.0 ms, 67.4 baked, 14.40333333333333 in bank3 Cursor with 20.0Cursor
+560 ms, 15 baked, 0 in bank
+1 Cursor with 0
+CursorCursor
+1280.0 ms, 33.07 baked, 0.07333333333333769 in bank
+2 Cursor with 13.33
+CursorCursorCursor
+2080.0 ms, 53.23 baked, 0.23333333333333428 in bank
+3 Cursor with 13.33
+CursorCursorCursor
+3000.0 ms, 76.51 baked, 23.513333333333346 in bank
+3 Cursor with 26.67
+Action List: Cursor
+560 ms, 15 baked, 0 in bank
+1 Cursor with 0
+--------------------------------------------------
+Action List: CursorCursor
+1280.0 ms, 33.07 baked, 0.07333333333333769 in bank
+2 Cursor with 13.33
+--------------------------------------------------
+Action List: CursorCursorCursor
+2080.0 ms, 53.23 baked, 0.23333333333333428 in bank
+3 Cursor with 13.33
+--------------------------------------------------
+Action List: CursorCursorCursor
+2640.0 ms, 67.4 baked, 14.40333333333333 in bank
+3 Cursor with 20.0
+--------------------------------------------------
