@@ -4,41 +4,24 @@ import time
 
 import Toolbelt
 
-BuildingTypesRawInfo = [
-    ("Cursor",15,0.1),
-    ("Grandma",100,1),
-    ("Farm",1100,8),
-    ("Mine",12000,47),
-    ("Factory",130000,260)]
-
-class BuildingType():
-    def __init__(self,_Name,_BaseCost,_BaseCPS):
+class UpgradePurchase():
+    def __init__(self,_Name,_BuildingType,_Cost,_UnlockBuildingAmount=None):
         self.Name = _Name
-        self.BaseCost = _BaseCost
-        self.BaseCPS = _BaseCPS
-
-BuildingTypes = Toolbelt.MassConvToObjs(BuildingTypesRawInfo,BuildingType)
-
-
-class Purchase():
-    def __init__(self,_ID,_Name,_Type,_Cost=None):
-        self.ID = _ID
-        self.Name = _Name
-        self.Type = _Type
+        self.BuildingType = _BuildingType
         self.Cost = _Cost
+        self.UnlockBuildingAmount = _UnlockBuildingAmount
 
 class GameState():
-    def __init__(self,_Clock=0,_Bank=0,_Baked=0,_Upgrades=[],_Buildings=[]):
-        self.Clock = _Clock
+    def __init__(self,_FramesPassed=0,_Bank=0,_CookiesBaked=0,_Buildings=[],_UpgradeVault=[]):
+        self.FramesPassed = _FramesPassed
         self.Bank = _Bank
-        self.Baked = _Baked
-        self.Upgrades = _Upgrades
+        self.CookiesBaked = _CookiesBaked
         self.Buildings = _Buildings
+        self.UpgradeVault = _UpgradeVault
 
-    def Buy(self,_Purchase):
-        self.Bank -= _Purchase.Cost
+    def RemoveFromUpgradeVault(self,_Upgrade):
+        self.UpgradeVault.pop(UpgradeVault.index(_Upgrade.Name))
 
-Root_GameState = GameState()
-
-
-
+    def Buy_Upgrade(self,_UpgradePurchase):
+        self.Bank -= _UpgradePurchase.Cost
+        RemoveFromUpgradeVault(_UpgradePurchase)
