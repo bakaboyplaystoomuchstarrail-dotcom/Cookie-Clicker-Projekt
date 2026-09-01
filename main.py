@@ -4,76 +4,53 @@ import time
 
 import Toolbelt
 
-GoalTypes = {
-    "Time to reach fixed endpoint":"placeholder",
-    "CPF":"placeholder",
-    "Cookies Produced in fixed time slot":"placeholder"}
+Goal = int(input("What should the cookies baked end goal amount be?"))
 
-Goal = 100
-
-class UpgradePurchase():
-    def __init__(self,_Name,_BuildingType,_Cost,UpgradeFactor,_UnlockBuildingAmount=None):
-        self.Name = _Name
-        self.BuildingType = _BuildingType
-        self.Cost = _Cost
-        self.UnlockBuildingAmount = _UnlockBuildingAmount
+#FOCUS ON PRUNING FIRST, Evaluation mechanism later bro
 
 class BuildingType():
-    def __init__(self,_Name,_Value,_CPS,_Cooldown=999999999,_AmountOwned=0):
+    def __init__(self,_Name,_BasePrice,_BaseCPS):
         self.Name = _Name
-        self.Value = _Value
-        self.CPS = _CPS
-        self.Cooldown = _Cooldown
-        self.AmountOwned = _AmountOwned
+        self.BasePrice = _BasePrice
+        self.BaseCPS = _BaseCPS
 
-Template_BuildingTypes = [BuildingType("Cursor",15,0.1)]
+Cursor = BuildingType("Cursor",15,0.1)
+Grandma = BuildingType("Grandma",100,1)
+Farm = BuildingType("Farm",1100,8)
+Mine = BuildingType("Mine",1200,47)
+Factory = BuildingType("Factory",13000,260)
+BuildingTypes = [Cursor,Grandma,Farm,Mine,Factory] #These are all of the types that exist within the game, most of them have a base price above the goal amount though and as such I use "BuildingTypesWithinScope" for those instead
 
-class GameState():
-    def __init__(self,_FramesPassed=0,_ClickCooldown=40,_ClickPower=1,_Bank=0,_CookiesBaked=0,_Buildings=Template_BuildingTypes,_UpgradeVault=[]):
-        self.TimePassed = _FramesPassed
-        self.ClickCooldown = _ClickCooldown
-        self.ClickPower = _ClickPower
-        self.Bank = _Bank
-        self.CookiesBaked = _CookiesBaked
-        self.Buildings = _Buildings
-        self.UpgradeVault = _UpgradeVault
-        self.ActionCooldowns = [self.ClickCooldown]
-        self.ActionCooldownSources = ["Clicking"]
-        for x in range(len(self.Buildings)):
-            self.ActionCooldownSources.append(Toolbelt.TaggedVal(self.Buildings[x].Cooldown,self.Buildings[x]))
-            
-            
+class Combination():
+    def __init__(self,_ID):
+        self.CookiesBaked = 0
+        self.BuildingTypesWithinScope = []
+        Counter = 0
+        while BuildingTypes[Counter].BasePrice < Goal:
+            self.BuildingTypesWithinScope.append(BuildingTypes[Counter])
+            Counter += 1
+        self.ActionList = []
 
-    def Click(self):
-        self.Bank += self.ClickPower
-        self.CookiesBaked += self.ClickPower
-        self.ClickCooldown = 40
+    def Calc_Gap(self):
+        return(Goal - self.CookiesBaked)
 
-    def AdvanceSim(self):
-        for x in range()
+    def Calc_MaxBuyableOfBuildingType(self,_BuildingType):
+        return(math.floor(math.log((self.Calc_Gap()*0.15/_BuildingType.BasePrice)+1)))
+    
+    def Buy(self,_BuildingType,_PurchaseAmount):
+        self.ActionList.append((_PurchaseAmount,_BuildingType))
+        self.CookiesBaked += _BuildingType.BasePrice*((1.15**_PurchaseAmount)-1)/0.15
 
+    def Buy_MaxAmtofBuildingType(self,_BuildingType):
+        self.Buy(_BuildingType,self.Calc_MaxBuyableOfBuildingType(_BuildingType))
 
-        NextAction = min(self.ActionCooldowns)
-        self.TimePassed += NextAction
+    def MaximallyBuy_FocusBuildingType(self,_BuildingType):
+        ID = self.BuildingTypesWithinScope.index(_BuildingType)
+        Counter = 0
+        while self.Calc_Gap() > self.BuildingTypesWithinScope[ID+Counter+1].BasePrice:
+            self.Buy_MaxAmtofBuildingType(self.BuildingTypesWithinScope[ID+Counter])
 
-        for x in range(len(self.ActionCooldowns)):
-            self.ActionCooldowns[x] -= 
+#Start by finding the corner of the pareto frontier, take one combination and make it have a maximal amount of purchases of a certain building type
+RootCombination = Combination(0)
 
-        self.ClickCooldown -= 1
-        if self.ClickCooldown == 0:
-            Click()
-        for x in range(len(self.Buildings)):
-            self.Buildings[x].Cooldown -= 1
-            if self.Buildings[x].Cooldown == 0:
-                self.Bank += self.Buildings[x].CPS/30
-
-    def RemoveFromUpgradeVault(self,_Upgrade):
-        self.UpgradeVault.pop(UpgradeVault.index(_Upgrade.Name))
-
-    def Buy_Upgrade(self,_UpgradePurchase):
-        self.Bank -= _UpgradePurchase.Cost
-        RemoveFromUpgradeVault(_UpgradePurchase)
-        if _UpgradePurchase.BuildingType == "Cursor":
-            self.ClickPower = self.ClickPower * _UpgradePurchase.UpgradeFactor
-        self.Buildings[]
-
+RootCombination.Calc_MaxBuyableOfBuildingType(RootCombination.BuildingTypesWithinScope[-1])
