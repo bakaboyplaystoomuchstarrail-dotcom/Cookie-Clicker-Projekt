@@ -2,9 +2,9 @@ import math
 import random
 import time
 
-import Toolbelt
+# import Toolbelt
 
-Goal = int(input("What should the cookies baked end goal amount be?"))
+Goal = float(input("What should the cookies baked end goal amount be?"))
 
 #FOCUS ON PRUNING FIRST, Evaluation mechanism later bro
 
@@ -29,28 +29,31 @@ class Combination():
         while BuildingTypes[Counter].BasePrice < Goal:
             self.BuildingTypesWithinScope.append(BuildingTypes[Counter])
             Counter += 1
+            if Counter == len(BuildingTypes):
+                break
         self.ActionList = []
 
     def Calc_Gap(self):
-        return(Goal - self.CookiesBaked)
+        return(Goal - self.CookiesBaked - 0.0001) #If the cost of a purchase would put the sum total purchases cost to the same level as the goal, then there's no point considering it since the very frame the purchase becomes unlockable the simulation would've ended.
 
     def Calc_MaxBuyableOfBuildingType(self,_BuildingType):
-        return(math.floor(math.log((self.Calc_Gap()*0.15/_BuildingType.BasePrice)+1)))
+        return(math.floor(math.log((self.Calc_Gap()*0.15/_BuildingType.BasePrice)+1,1.15)))
     
     def Buy(self,_BuildingType,_PurchaseAmount):
-        self.ActionList.append((_PurchaseAmount,_BuildingType))
+        self.ActionList.append((_PurchaseAmount,_BuildingType.Name))
         self.CookiesBaked += _BuildingType.BasePrice*((1.15**_PurchaseAmount)-1)/0.15
 
-    def Buy_MaxAmtofBuildingType(self,_BuildingType):
+    def Buy_MaxAmtOfBuildingType(self,_BuildingType):
         self.Buy(_BuildingType,self.Calc_MaxBuyableOfBuildingType(_BuildingType))
 
-    def MaximallyBuy_FocusBuildingType(self,_BuildingType):
-        ID = self.BuildingTypesWithinScope.index(_BuildingType)
+    def MaximallyBuy(self,_PrimaryFocusBuildingType):
+        ID = self.BuildingTypesWithinScope.index(_PrimaryFocusBuildingType)
+        circular_arr = self.BuildingTypesWithinScope[ID:] + self.BuildingTypesWithinScope[:ID]
         Counter = 0
-        while self.Calc_Gap() > self.BuildingTypesWithinScope[ID+Counter+1].BasePrice:
-            self.Buy_MaxAmtofBuildingType(self.BuildingTypesWithinScope[ID+Counter])
+        while self.Calc_Gap() > circular_arr[Counter].BasePrice:
+            self.Buy_MaxAmtOfBuildingType(circular_arr[Counter])
+            Counter += 1
+            if Counter == len(circular_arr):
+                break
 
-#Start by finding the corner of the pareto frontier, take one combination and make it have a maximal amount of purchases of a certain building type
 RootCombination = Combination(0)
-
-RootCombination.Calc_MaxBuyableOfBuildingType(RootCombination.BuildingTypesWithinScope[-1])
