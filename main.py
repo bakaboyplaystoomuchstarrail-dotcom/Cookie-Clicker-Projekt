@@ -5,8 +5,9 @@ import time
 # import Toolbelt
 
 Goal = float(input("What should the cookies baked end goal amount be?"))
-
-#FOCUS ON PRUNING FIRST, Evaluation mechanism later bro
+while Goal <= 15:
+    print("Choose a higher goal, at this level nothing can be afforded before the goal is reached and the simulation concluded")
+    Goal = float(input())
 
 class BuildingType():
     def __init__(self,_Name,_BasePrice,_BaseCPS,_AmountOwned=0):
@@ -22,7 +23,7 @@ class BuildingType():
     def Value(self):
         return(self.BulkBuyFormula(self.AmountOwned))
 
-    def Calc_BuyCost(self,_NumBuildings):#Accounts for scenarios in which buildings are alr owned
+    def Calc_BuyCost(self,_NumBuildings=1):#Accounts for scenarios in which buildings are alr owned
         return(self.BulkBuyFormula(_NumBuildings)-self.Value) 
 
     def Calc_SellPrice(self,_NumBuildings):
@@ -30,6 +31,10 @@ class BuildingType():
 
     def Calc_MaxBuyable(self,_Gap):
             return(math.floor(math.log((_Gap*0.15/self.BasePrice)+1,1.15)))
+
+    def copy(self):
+        # Return a new BuildingType with the same attribute values
+        return BuildingType(self.Name, self.BasePrice, self.BaseCPS, self.AmountOwned)
 
 
 Cursor = BuildingType("Cursor",15,0.1)
@@ -39,7 +44,7 @@ Mine = BuildingType("Mine",1200,47)
 Factory = BuildingType("Factory",13000,260)
 BuildingTypes = [Cursor,Grandma,Farm,Mine,Factory] #These are all of the types that exist within the game, most of them have a base price above the goal amount though and as such I use "BuildingTypesWithinScope" for those instead
 
-CombinationIDIncrementer = 0
+CombIDCounter = 0
 class Combination():
     def __init__(self,_ID):
         self.ID = _ID
@@ -47,10 +52,12 @@ class Combination():
         self.BuildingTypesWithinScope = []
         Counter = 0
         while BuildingTypes[Counter].BasePrice < Goal:
-            self.BuildingTypesWithinScope.append(BuildingTypes[Counter])
+            self.BuildingTypesWithinScope.append(BuildingTypes[Counter].copy())
             Counter += 1
             if Counter == len(BuildingTypes):
                 break
+        self.AllocationList = []
+        self.OmittedType = None
         
         
     @property
@@ -58,37 +65,59 @@ class Combination():
         return(Goal - self.CookiesBaked - 0.0001) #fah If the cost of a purchase would put the sum total purchases cost to the same level as the goal, then there's no point considering it since the very frame the purchase becomes unlockable the simulation would've ended.
     
     def AddPurchase(self,_BuildingType,_PurchaseAmount):
-        _BuildingType.AmountOwned += 1
         self.CookiesBaked += _BuildingType.Calc_BuyCost(_PurchaseAmount)
+        _BuildingType.AmountOwned += _PurchaseAmount
 
     def AddMaxBuildingType(self,_BuildingType):
         self.AddPurchase(_BuildingType,_BuildingType.Calc_MaxBuyable(self.Gap))
 
-    def AddMaxPurchases(self,_PrimaryFocusBuildingType=BuildingTypes[0]):
-        FocusedTypeID = self.BuildingTypesWithinScope.index(_PrimaryFocusBuildingType)
-        LoopedTypesWithinScope = self.BuildingTypesWithinScope[FocusedTypeID:] + self.BuildingTypesWithinScope[:FocusedTypeID]
+    def AddMaxPurchases(self):
         Counter = 0
-        while self.Gap > LoopedTypesWithinScope[Counter].BasePrice:#shouldn't be base price but it doesn't matter because this func is only ever called to find corners, meaning no buildings will be owned 
-            self.AddMaxBuildingType(LoopedTypesWithinScope[Counter])
+        while self.Gap > self.BuildingTypesWithinScope[Counter].BasePrice:#shouldn't be base price but it doesn't matter because this func is only ever called to find corners, meaning no buildings will be owned 
+            self.AddMaxBuildingType(self.BuildingTypesWithinScope[Counter])
             Counter += 1
-            if Counter == len(LoopedTypesWithinScope):
+            if Counter == len(self.BuildingTypesWithinScope):
                 break
     
-    def DupeCombination(self,_CombinationIDIncrementer=CombinationIDIncrementer):
-        _CombinationIDIncrementer += 1
-        New_Comb = Combination(_CombinationIDIncrementer)
+    def OmitPurchase(self,_BuildingType,_OmittedAmt):
+        self.CookiesBaked -= _BuildingType.Calc_SellPrice(_OmittedAmt)
+        _BuildingType.AmountOwned -= _OmittedAmt
+
+    def PrintDetails(self):
+        print(self.CookiesBaked)
+        print(self.Gap)
+        for x in range(len(self.BuildingTypesWithinScope)):
+            print(f"{self.BuildingTypesWithinScope[x].AmountOwned} {self.BuildingTypesWithinScope[x].Name}")
+        print("===============================")
+
+
+    def Dupe(self,_NewCombID=CombIDCounter):
+        New_Comb = Combination(_NewCombID)
         New_Comb.CookiesBaked = self.CookiesBaked
-        New_Comb.BuildingTypesWithinScope = self.BuildingTypesWithinScope
+        New_Comb.AllocationList = self.AllocationList
+        New_Comb.OmittedType = self.OmittedType
+        New_Comb.BuildingTypesWithinScope = []
+        for x in range(len(self.BuildingTypesWithinScope)):
+            New_Comb.BuildingTypesWithinScope[x] = self.BuildingTypesWithinScope[x].copy()
         return(New_Comb)
 
+RootCombination = Combination(CombIDCounter) 
+RootCombination.AddMaxPurchases() #830 iis the sweeet spot or smth
+BuildingPurchasesCombinations = [RootCombination] #The array containing all the combinations of building purchases affordable within the scope of the goal
 
-
-
-RootCombination = Combination(CombinationIDIncrementer) 
-RootCombination.AddMaxPurchases(BuildingTypes[0])
-C = [RootCombination] #The array containing all the combinations of building purchases affordable within the scope of the goal
-
-print(RootCombination.CookiesBaked)
-print(RootCombination.Gap)
-for x in range(len(RootCombination.BuildingTypesWithinScope)):
-    print(f"{RootCombination.BuildingTypesWithinScope[x].AmountOwned} {RootCombination.BuildingTypesWithinScope[x].Name}")
+DuplicateCount = 0
+Curr_Comb = BuildingPurchasesCombinations[0]
+for w in range(len(Curr_Comb.BuildingTypesWithinScope)):
+    Curr_Comb.OmittedType = Curr_Comb.BuildingTypesWithinScope[w]
+    Curr_Comb.AllocationList = Curr_Comb.BuildingTypesWithinScope
+    Curr_Comb.AllocationList.pop(w)
+    for x in range(1,Curr_Comb.OmittedType.AmountOwned):#omitting amt
+        for i in range(len(Curr_Comb.AllocationList)):#allocating to everyone who hasn't been omitted
+            if Curr_Comb.OmittedType.Calc_SellPrice(x) > Curr_Comb.AllocationList[i].Calc_BuyCost():
+                New_Comb = Curr_Comb.Dupe()
+                CombIDCounter += 1
+                New_Comb.OmitPurchase(New_Comb.OmittedType,x)
+                New_Comb.AddMaxBuildingType(New_Comb.AllocationList[i])
+                BuildingPurchasesCombinations.append(New_Comb)
+                New_Comb.PrintDetails()
+                
