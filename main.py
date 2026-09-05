@@ -18,7 +18,7 @@ class BuildingType():
     def BulkBuyFormula(self,_NumBuildings): 
         return(self.BasePrice*((1.15**_NumBuildings)-1)/0.15)
 
-    def Calc_BuyCost(self,_NumCurrOwned=0,_PurchaseAmt=1):#Accounts for scenarios in which buildings are alr owned
+    def Calc_BuyCost(self,_NumCurrOwned=0,_PurchaseAmt=1):
         return(self.BulkBuyFormula(_NumCurrOwned + _PurchaseAmt)-self.BulkBuyFormula(_NumCurrOwned)) 
 
     def Calc_SellPrice(self,_NumCurrOwned,_SellAmt=1):
@@ -26,7 +26,7 @@ class BuildingType():
 
     def Calc_MaxBuyable(self,_Gap,_NumCurrOwned=0):
         MaxBuyable = 0
-        while self.Calc_BuyCost(_NumCurrOwned + MaxBuyable,1) < _Gap:
+        while self.Calc_BuyCost(_NumCurrOwned,MaxBuyable + 1) < _Gap:
             MaxBuyable += 1
         return(MaxBuyable)
         # return(math.floor(math.log((_Gap*0.15/(self.BasePrice*((1.15**self.AmountOwned)-1)))+1,1.15)))
@@ -47,12 +47,10 @@ while BuildingTypes[Counter].BasePrice < Goal:
 BuildingTypesWithinScope = BuildingTypes[:Counter]
 
 class Combination():
-    def __init__(self,_ID,_BuildingInventories=[]):
+    def __init__(self,_ID,_BuildingInventories=None):
         self.ID = _ID
         self.CookiesBaked = 0
         self.BuildingInventories = _BuildingInventories
-        self.AllocationList = []
-        self.OmittedType = None
         
     @property
     def Gap(self):
@@ -67,7 +65,7 @@ class Combination():
 
     def AddMaxPurchases(self,_BuildingTypesWithinScope=BuildingTypesWithinScope):
         Counter = 0
-        while self.Gap => _BuildingTypesWithinScope[Counter].BasePrice:
+        while self.Gap >= _BuildingTypesWithinScope[Counter].BasePrice:
             self.AddMaxBuildingType(Counter)
             Counter += 1
             if Counter == len(_BuildingTypesWithinScope):
